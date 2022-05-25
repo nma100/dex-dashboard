@@ -17,8 +17,8 @@ function getDexChartData(chainId, dexname) {
     return callApi(`/${chainId}/xy=k/${dexname}/ecosystem`);
 }
 
-function getPools(chainId, dexname) {
-    return callApi(`/${chainId}/xy=k/${dexname}/pools`);
+function getPools(chainId, dexname, pageNumber = 0, pageSize = 25) {
+    return callApi(`/${chainId}/xy=k/${dexname}/pools`, `&page-size=${pageSize}&page-number=${pageNumber}`);
 }
 
 function getAllTokens(chainId) {
@@ -29,7 +29,7 @@ function getTokens(chainId, dexname) {
     return callApi(`/${chainId}/xy=k/${dexname}/tokens`);
 }
 
-function callApi(endpoint) {
+function callApi(endpoint, params = '') {
 
   return new Promise((resolve, reject) => {
 
@@ -44,11 +44,12 @@ function callApi(endpoint) {
     };
 
     let xhr = new XMLHttpRequest(endpoint, onLoad);
-    xhr.open("GET", API_URL +  endpoint + '/?key=' + API_KEY);
+    xhr.open("GET", API_URL +  endpoint + '/?key=' + API_KEY + params);
     xhr.addEventListener('load', onLoad);
     xhr.addEventListener('error', onError);
     xhr.send();
   });
 }
 
-export { getAllChains, getSupportedDexes, getSupportedDexesByChain, getDexChartData, getPools, getAllTokens, getTokens };
+export { getAllChains, getSupportedDexes, getSupportedDexesByChain, 
+        getDexChartData, getPools, getAllTokens, getTokens };
