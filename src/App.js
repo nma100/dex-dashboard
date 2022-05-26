@@ -5,17 +5,8 @@ import * as Bootstrap from 'bootstrap';
 
 
 class App extends React.Component {
-  /*
-    Pools
-    Decouper en components
-    Creer module charts
-    Placeholder loading
-    Meilleure gestion des query params
-    Perf gros dex (pancake, quick)
-  */
 
   constructor(props) {
-    console.log('constructor');
     super(props);
     this.state = {
       allChains: '',
@@ -25,13 +16,9 @@ class App extends React.Component {
       currentDexPools: ''
     };
 
-    this.handleClick = this.handleClick.bind(this);
     this.onChangeChain = this.onChangeChain.bind(this);
     this.onChangeDex = this.onChangeDex.bind(this);
     this.onShowPoolsTab = this.onShowPoolsTab.bind(this);
-    this.onShownPoolsTab = this.onShownPoolsTab.bind(this);
-
-    console.log('bootstrap', Bootstrap);
   }
 
   showLoadModal(show) {
@@ -51,23 +38,14 @@ class App extends React.Component {
 
     let poolTabStatus = document.getElementById('pool-tab-status');
     let poolTab = document.getElementById('pools-tab');
-    console.log('poolTabStatus', poolTabStatus.value);
 
     if (poolTabStatus.value == 0) {
-      console.log('init Pool Tab event');
       poolTabStatus.value = 1;
       poolTab.addEventListener('show.bs.tab', this.onShowPoolsTab);
-      poolTab.addEventListener('shown.bs.tab', this.onShownPoolsTab);
-      poolTab.addEventListener('hide.bs.tab', function (event) {
-        console.log('hide pools tab !!', event.target) // newly activated tab
-        //console.log('show Tab prev', event.relatedTarget) // previous active tab
-      })
     }
   }
 
   async onShowPoolsTab (event) {
-    console.log('show pools tab !!', event.target) // newly activated tab
-    //console.log('show Tab prev', event.relatedTarget) // previous active tab
       this.blurTags(true);
       this.showSpin(true);
       let newState = {};
@@ -78,10 +56,6 @@ class App extends React.Component {
         this.showSpin(false);
         return newState;
       });
-  }
-
-  onShownPoolsTab (event) {
-    console.log('shown pools tab !!', event.target) // newly activated tab
   }
 
   blurTags(blur) {
@@ -115,7 +89,6 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-    console.log('componentDidMount');
     this.showLoadModal(true);
     this.showSpin(true);
     this.blurTags(true);
@@ -126,7 +99,6 @@ class App extends React.Component {
     initState.currentChain = initState.allChains[0];
     initState.allDexes = await Covalent.getSupportedDexesByChain(initState.currentChain.chain_id);
     initState.currentDex = await Covalent.getDexChartData(initState.currentChain.chain_id, initState.allDexes[0].dex_name);
-    //initState.currentDexPools = await Covalent.getPools(initState.currentChain.chain_id, initState.currentDex.data.items[0].dex_name);
     initState.currentDexPools =[];
     initState.currentPoolPage = 0;
     this.setState(initState);
@@ -137,7 +109,6 @@ class App extends React.Component {
   }
 
   async onChangeChain(event) {
-    console.log('onChangeChain', event.target.value);
     this.blurCombos(true);    
     this.blurTags(true);    
     this.showSpin(true);
@@ -146,7 +117,6 @@ class App extends React.Component {
     updateState.currentChain = this.state.allChains.find(c => c.chain_id === event.target.value);
     updateState.allDexes = await Covalent.getSupportedDexesByChain(updateState.currentChain.chain_id);
     updateState.currentDex = await Covalent.getDexChartData(updateState.currentChain.chain_id, updateState.allDexes[0].dex_name);
-    //updateState.currentDexPools = await Covalent.getPools(updateState.currentChain.chain_id, updateState.currentDex.data.items[0].dex_name);
     updateState.currentDexPools =[];
     updateState.currentPoolPage = 0;
     this.setState(updateState);
@@ -161,10 +131,8 @@ class App extends React.Component {
     this.blurTags(true);
     this.showSpin(true);
     this.showTab('overview-tab');
-    console.log('onChangeDex', event.target.value);
     let updateState = {};
     updateState.currentDex = await Covalent.getDexChartData(this.state.currentChain.chain_id, event.target.value);
-    //updateState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, updateState.currentDex.data.items[0].dex_name);
     updateState.currentDexPools =[];
     updateState.currentPoolPage = 0;
     this.setState(updateState);
@@ -230,18 +198,14 @@ class App extends React.Component {
     }
 
     if (chartVolume !== false) {
-      console.log('Init chartVolume', chartVolume);
       this.setState({ chartVolume: chartVolume });
     } 
     if (chartLiquidity !== false) {
-      console.log('Init chartLiquidity', chartLiquidity);
       this.setState({ chartLiquidity: chartLiquidity });
     } 
   }
 
   updateCharts(dex) {
-
-    console.log('updateCharts', dex.data.items[0].dex_name);
 
     let formatDate = d => new Date(d).toISOString().substring(5, 10);
     
@@ -259,41 +223,10 @@ class App extends React.Component {
     this.state.chartLiquidity.data.datasets[0].data = liquidityY;
     this.state.chartLiquidity.update();
   }
-  
-  async handleClick(e) {
-    e.preventDefault();
-
-    //let chainId = '1';
-    let chainId = '56'; // BNB Chain
-
-    let allChains = await Covalent.getAllChains();
-    console.log('All chains', allChains);
-    
-    let allTokens = await Covalent.getAllTokens(chainId);
-    console.log('All tokens', allTokens);
-
-    let allDexes = await Covalent.getSupportedDexes();
-    console.log('All dexes', allDexes);
-
-    let allDexesByChain = await Covalent.getSupportedDexesByChain(chainId);
-    console.log('All dexes by chain', allDexesByChain);
-
-    let currentDex = await Covalent.getDexChartData(chainId, 'sushiswap');
-    console.log('Dex data', currentDex);
-
-    let pools = await Covalent.getPools(chainId, 'sushiswap');
-    console.log('Pools', pools);
-
-    let tokens = await Covalent.getTokens(chainId, 'sushiswap');
-    console.log('Tokens', tokens);
-  }
 
   activePools() {
     let allPools = this.state.currentDexPools;
     if (!allPools || allPools.length === 0) return [];
-
-    console.log('allPools', allPools.data.items);
-    //return allPools.data.items.filter(p => p.volume_24h_quote > 0);
     return allPools.data.items;
   }
 
@@ -303,7 +236,6 @@ class App extends React.Component {
     let newState = {};
     newState.currentPoolPage = this.state.currentPoolPage - 1;
     newState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, this.state.currentDex.data.items[0].dex_name, newState.currentPoolPage);
-    console.log('prevPoolPage', newState);
     this.setState(() => {
       this.blurTags(false);
       return newState;
@@ -315,7 +247,6 @@ class App extends React.Component {
     let newState = {};
     newState.currentPoolPage = this.state.currentPoolPage + 1;
     newState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, this.state.currentDex.data.items[0].dex_name, newState.currentPoolPage);
-    console.log('nextPoolPage', newState);
     this.setState(() => {
       this.blurTags(false);
       return newState;
@@ -335,7 +266,7 @@ class App extends React.Component {
                 <hr className='text-light my-4'/>
 
                 <div className="mb-4">
-                  <label for="select-chain" className="form-label text-light">Blockchain</label>
+                  <label htmlFor="select-chain" className="form-label text-light">Blockchain</label>
                   <select id="select-chain" className="form-select" onChange={this.onChangeChain} value={this.state.currentChain && this.state.currentChain.chain_id}>
                     {this.state.allChains && this.state.allChains.map(chain =>
                       <option key={chain.chain_id} value={chain.chain_id}>{chain.label}</option> 
@@ -344,7 +275,7 @@ class App extends React.Component {
                 </div>
 
                 <div className="mb-3">
-                  <label for="select-dex" className="form-label text-light">Exchange</label>
+                  <label htmlFor="select-dex" className="form-label text-light">Exchange</label>
                   <select id="select-dex" className="form-select"  onChange={this.onChangeDex} value={this.state.currentDex && this.state.currentDex.data.items[0].dex_name}>
                     {this.state.allDexes && this.state.allDexes.map(dex =>
                       <option key={dex.dex_name} value={dex.dex_name}>{dex.dex_name}</option> 
@@ -390,7 +321,7 @@ class App extends React.Component {
 
                   {this.state.currentDex &&
                     <React.Fragment>
-                      <div class="table-responsive">
+                      <div className="table-responsive">
                       <table className="table rounded-3 shadow-sm mb-4">
                         <tbody>
                           <tr>
@@ -413,7 +344,7 @@ class App extends React.Component {
                   }
                 </div>{/* Overview tab */}
                 <div className="tab-pane fade" id="pools" role="tabpanel" aria-labelledby="pools-tab">
-                  <div class="table-responsive">
+                  <div className="table-responsive">
                   <table className="table table-striped table-sm">
                     <thead>
                       <tr>
@@ -437,8 +368,8 @@ class App extends React.Component {
                   </div>
 
                   <div className="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" className="btn btn-light" onClick={() => this.prevPoolPage()}><i class="bi bi-caret-left-fill"></i> Prev</button>
-                    <button type="button" className="btn btn-light" onClick={() => this.nextPoolPage()}>Next <i class="bi bi-caret-right-fill"></i></button>
+                    <button type="button" className="btn btn-light" onClick={() => this.prevPoolPage()}><i className="bi bi-caret-left-fill"></i> Prev</button>
+                    <button type="button" className="btn btn-light" onClick={() => this.nextPoolPage()}>Next <i className="bi bi-caret-right-fill"></i></button>
                   </div>
                   <input id="pool-tab-status" type="hidden" value="0" />
                 </div>{/* Pool tab */}
