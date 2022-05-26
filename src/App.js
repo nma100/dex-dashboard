@@ -290,8 +290,8 @@ class App extends React.Component {
                 </div>
 
                 <div className='text-light text-center position-absolute bottom-0 start-50 translate-middle'>
-                    <div className='fs-6'>Powered By</div>
-                    <a className='fs-5 text-reset' href='https://www.covalenthq.com/'>Covalent</a>
+                    <div className='fs-5'>Powered By</div>
+                    <a className='fs-4 text-reset' href='https://www.covalenthq.com/'>Covalent</a>
                 </div>
 
             </div> {/* Sidebar */}
