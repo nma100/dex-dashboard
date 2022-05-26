@@ -1,2 +1,10 @@
 @import "bootstrap/scss/bootstrap";
-@import "bootstrap-icons/font/bootstrap-icons.scss";
+
+html { 
+    overflow-y:scroll; 
+    
+    #title { 
+        font-family: Georgia, 'Times New Roman', Times, serif; 
+        font-size: 1.7rem !important;
+    }
+}

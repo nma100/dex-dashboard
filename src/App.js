@@ -29,44 +29,25 @@ class App extends React.Component {
     this.onChangeChain = this.onChangeChain.bind(this);
     this.onChangeDex = this.onChangeDex.bind(this);
     this.onShowPoolsTab = this.onShowPoolsTab.bind(this);
+    this.onShownPoolsTab = this.onShownPoolsTab.bind(this);
 
     console.log('bootstrap', Bootstrap);
   }
 
-  async onShowPoolsTab (event) {
-    console.log('show pools tab !!', event.target) // newly activated tab
-    //console.log('show Tab prev', event.relatedTarget) // previous active tab
-      let newState = {};
-      newState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, this.state.currentDex.data.items[0].dex_name);
-      newState.currentPoolPage = 0;
-      this.setState(newState);
-  }
-  
-  showTab(id) {
-    var triggerEl = document.getElementById(id);
-    var tab = Bootstrap.Tab.getInstance(triggerEl);
-    tab.show();
+  showLoadModal(show) {
+    var myModalEl = document.querySelector('#load-modal');
+    var modal = Bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+    if (show) modal.show();
+    else modal.hide();
   }
 
-  async componentDidMount() {
-    console.log('componentDidMount');
-
-    /*var triggerTabList = [].slice.call(document.querySelectorAll('#myTab button'))
-    triggerTabList.forEach(function (triggerEl) {
-      var tabTrigger = new Bootstrap.Tab(triggerEl)
-
-      triggerEl.addEventListener('click', function (event) {
-        event.preventDefault()
-        console.log('click tab', event);
-        tabTrigger.show()
-      })
-    })*/
-
+  initTabs() {
+    
     var tabElList = document.querySelectorAll('button[data-bs-toggle="tab"]')
     tabElList.forEach(function(tabEl) {
       new Bootstrap.Tab(tabEl)
     })
-
 
     let poolTabStatus = document.getElementById('pool-tab-status');
     let poolTab = document.getElementById('pools-tab');
@@ -75,16 +56,70 @@ class App extends React.Component {
     if (poolTabStatus.value == 0) {
       console.log('init Pool Tab event');
       poolTabStatus.value = 1;
-      poolTab.addEventListener('show.bs.tab', this.onShowPoolsTab)
+      poolTab.addEventListener('show.bs.tab', this.onShowPoolsTab);
+      poolTab.addEventListener('shown.bs.tab', this.onShownPoolsTab);
       poolTab.addEventListener('hide.bs.tab', function (event) {
         console.log('hide pools tab !!', event.target) // newly activated tab
         //console.log('show Tab prev', event.relatedTarget) // previous active tab
       })
     }
+  }
 
+  async onShowPoolsTab (event) {
+    console.log('show pools tab !!', event.target) // newly activated tab
+    //console.log('show Tab prev', event.relatedTarget) // previous active tab
+      this.blurTags(true);
+      this.showSpin(true);
+      let newState = {};
+      newState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, this.state.currentDex.data.items[0].dex_name);
+      newState.currentPoolPage = 0;
+      this.setState(() => { 
+        this.blurTags(false);
+        this.showSpin(false);
+        return newState;
+      });
+  }
 
+  onShownPoolsTab (event) {
+    console.log('shown pools tab !!', event.target) // newly activated tab
+  }
 
+  blurTags(blur) {
+    if (blur)
+      document.getElementById('tab-content-panel').classList.add('opacity-25')
+    else 
+      document.getElementById('tab-content-panel').classList.remove('opacity-25')
+  }
 
+  blurCombos(blur) {
+    if (blur) {
+      document.getElementById('select-chain').classList.add('opacity-25');
+      document.getElementById('select-dex').classList.add('opacity-25');
+    } else  {
+      document.getElementById('select-chain').classList.remove('opacity-25');
+      document.getElementById('select-dex').classList.remove('opacity-25');
+    }
+  }
+  
+  showTab(id) {
+    var triggerEl = document.getElementById(id);
+    var tab = Bootstrap.Tab.getInstance(triggerEl);
+    tab.show();
+  }
+
+  showSpin(spin) {
+    if (spin)
+      document.getElementById('spinner').classList.remove('d-none')
+    else 
+      document.getElementById('spinner').classList.add('d-none')
+  }
+
+  async componentDidMount() {
+    console.log('componentDidMount');
+    this.showLoadModal(true);
+    this.showSpin(true);
+    this.blurTags(true);
+    this.initTabs();
     this.initCharts();
     let initState = {};
     initState.allChains = await this.getMainnetChains();
@@ -95,11 +130,17 @@ class App extends React.Component {
     initState.currentDexPools =[];
     initState.currentPoolPage = 0;
     this.setState(initState);
-    this.updateCharts(initState.currentDex)
+    this.updateCharts(initState.currentDex);
+    this.showSpin(false);
+    this.blurTags(false);
+    this.showLoadModal(false);
   }
 
   async onChangeChain(event) {
     console.log('onChangeChain', event.target.value);
+    this.blurCombos(true);    
+    this.blurTags(true);    
+    this.showSpin(true);
     this.showTab('overview-tab');
     let updateState = {};
     updateState.currentChain = this.state.allChains.find(c => c.chain_id === event.target.value);
@@ -109,10 +150,16 @@ class App extends React.Component {
     updateState.currentDexPools =[];
     updateState.currentPoolPage = 0;
     this.setState(updateState);
-    this.updateCharts(updateState.currentDex)
+    this.updateCharts(updateState.currentDex);
+    this.blurCombos(false);    
+    this.blurTags(false);
+    this.showSpin(false);
   }
   
   async onChangeDex(event) {
+    this.blurCombos(true);    
+    this.blurTags(true);
+    this.showSpin(true);
     this.showTab('overview-tab');
     console.log('onChangeDex', event.target.value);
     let updateState = {};
@@ -122,6 +169,9 @@ class App extends React.Component {
     updateState.currentPoolPage = 0;
     this.setState(updateState);
     this.updateCharts(updateState.currentDex);
+    this.blurCombos(false);
+    this.blurTags(false);
+    this.showSpin(false);
   }
 
   async getMainnetChains() {
@@ -249,19 +299,27 @@ class App extends React.Component {
 
   async prevPoolPage() {
     if (this.state.currentPoolPage === 0) return;
+    this.blurTags(true);
     let newState = {};
     newState.currentPoolPage = this.state.currentPoolPage - 1;
     newState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, this.state.currentDex.data.items[0].dex_name, newState.currentPoolPage);
     console.log('prevPoolPage', newState);
-    this.setState(newState);
+    this.setState(() => {
+      this.blurTags(false);
+      return newState;
+    });
   }
 
   async nextPoolPage() {
+    this.blurTags(true);
     let newState = {};
     newState.currentPoolPage = this.state.currentPoolPage + 1;
     newState.currentDexPools = await Covalent.getPools(this.state.currentChain.chain_id, this.state.currentDex.data.items[0].dex_name, newState.currentPoolPage);
     console.log('nextPoolPage', newState);
-    this.setState(newState);
+    this.setState(() => {
+      this.blurTags(false);
+      return newState;
+    });
   }
 
 
@@ -270,24 +328,40 @@ class App extends React.Component {
     <div className="container-fluid">
 
           <div className="row vh-100">
-            <div className="col-2 py-3 bg-dark">
+            <div className="col-2 py-3 position-relative bg-dark shadow">
                 <a href="/" className="d-flex justify-content-center text-white text-decoration-none">
-                  <p className="fs-3">DEX Dashboard</p>
+                  <div id="title" className="text-center">DEX Dashboard</div>
                 </a>
+                <hr className='text-light my-4'/>
 
-                <select id="select-chain" className="form-select" onChange={this.onChangeChain} value={this.state.currentChain && this.state.currentChain.chain_id}>
-                  {this.state.allChains && this.state.allChains.map(chain =>
-                    <option key={chain.chain_id} value={chain.chain_id}>{chain.label}</option> 
-                  )}
-                </select>
+                <div className="mb-4">
+                  <label for="select-chain" className="form-label text-light">Blockchain</label>
+                  <select id="select-chain" className="form-select" onChange={this.onChangeChain} value={this.state.currentChain && this.state.currentChain.chain_id}>
+                    {this.state.allChains && this.state.allChains.map(chain =>
+                      <option key={chain.chain_id} value={chain.chain_id}>{chain.label}</option> 
+                    )}
+                  </select>
+                </div>
 
-                <select id="select-dex" className="form-select"  onChange={this.onChangeDex} value={this.state.currentDex && this.state.currentDex.data.items[0].dex_name}>
-                  {this.state.allDexes && this.state.allDexes.map(dex =>
-                    <option key={dex.dex_name} value={dex.dex_name}>{dex.dex_name}</option> 
-                  )}
-                </select>
+                <div className="mb-3">
+                  <label for="select-dex" className="form-label text-light">Exchange</label>
+                  <select id="select-dex" className="form-select"  onChange={this.onChangeDex} value={this.state.currentDex && this.state.currentDex.data.items[0].dex_name}>
+                    {this.state.allDexes && this.state.allDexes.map(dex =>
+                      <option key={dex.dex_name} value={dex.dex_name}>{dex.dex_name}</option> 
+                    )}
+                  </select>
+                </div>
 
-                <button className="btn btn-primary mb-4" type="button" onClick={this.handleClick}>List</button>
+                <div id="spinner" className="text-center d-none">
+                  <div className="spinner-border text-light mt-4" style={{width: '3rem', height: '3rem'}} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+
+                <div className='text-light text-center position-absolute bottom-0 start-50 translate-middle'>
+                    <div className='fs-6'>Powered By</div>
+                    <a className='fs-5 text-reset' href='https://www.covalenthq.com/'>Covalent</a>
+                </div>
 
             </div> {/* Sidebar */}
             <div className="col-10 py-3 px-4">
@@ -300,7 +374,7 @@ class App extends React.Component {
                   <button className="nav-link" id="pools-tab" data-bs-toggle="tab" data-bs-target="#pools" type="button" role="tab" aria-controls="pools" aria-selected="false">Pools</button>
                 </li>
               </ul>
-              <div className="tab-content" id="myTabContent">
+              <div id="tab-content-panel" className="tab-content opacity-25" >
                 {this.state.currentChain && this.state.currentDex &&
                   <p className="fs-4">{this.state.currentChain.label} / {this.state.currentDex.data.items[0].dex_name}</p>
                 }
@@ -316,29 +390,31 @@ class App extends React.Component {
 
                   {this.state.currentDex &&
                     <React.Fragment>
-                      <table className="table rounded-3 shadow mb-4">
+                      <div class="table-responsive">
+                      <table className="table rounded-3 shadow-sm mb-4">
                         <tbody>
                           <tr>
-                            <td>total_swaps_24h</td>
-                            <td>{this.state.currentDex.data.items[0].total_swaps_24h}</td>
-                            <td>total_active_pairs_7d</td>
-                            <td>{this.state.currentDex.data.items[0].total_active_pairs_7d}</td>
+                            <td className='table-light w-25'>Total swaps 24H</td>
+                            <td className='text-muted'>{this.state.currentDex.data.items[0].total_swaps_24h}</td>
+                            <td className='table-light w-25'>Total active pairs 7D</td>
+                            <td className='text-muted'>{this.state.currentDex.data.items[0].total_active_pairs_7d}</td>
                           </tr>
                           <tr>
-                            <td>total_fees_24h</td>
-                            <td>{this.state.currentDex.data.items[0].total_fees_24h}</td>
-                            <td>gas_token_price_quote</td>
-                            <td>{this.state.currentDex.data.items[0].gas_token_price_quote}</td>
+                            <td className='table-light w-25'>Total fees 24H</td>
+                            <td className='text-muted'>{this.state.currentDex.data.items[0].total_fees_24h}</td>
+                            <td className='table-light w-25'>Gas token price quote</td>
+                            <td className='text-muted'>{this.state.currentDex.data.items[0].gas_token_price_quote}</td>
                           </tr>
                         </tbody>
                       </table>
-                      <p className="small text-end">Updated : {new Date(this.state.currentDex.data.updated_at).toLocaleString()}</p>
+                      </div>
+                      <p className="position-absolute bottom-0 end-0 px-4 small">Updated : {new Date(this.state.currentDex.data.updated_at).toLocaleString()}</p>
                     </React.Fragment>
                   }
                 </div>{/* Overview tab */}
                 <div className="tab-pane fade" id="pools" role="tabpanel" aria-labelledby="pools-tab">
-
-                  <table className="table">
+                  <div class="table-responsive">
+                  <table className="table table-striped table-sm">
                     <thead>
                       <tr>
                         <th scope="col">Pool</th>
@@ -358,9 +434,11 @@ class App extends React.Component {
                     )}
                     </tbody>
                   </table>
+                  </div>
+
                   <div className="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" className="btn btn-light" onClick={() => this.prevPoolPage()}>Prev</button>
-                    <button type="button" className="btn btn-light" onClick={() => this.nextPoolPage()}>Next</button>
+                    <button type="button" className="btn btn-light" onClick={() => this.prevPoolPage()}><i class="bi bi-caret-left-fill"></i> Prev</button>
+                    <button type="button" className="btn btn-light" onClick={() => this.nextPoolPage()}>Next <i class="bi bi-caret-right-fill"></i></button>
                   </div>
                   <input id="pool-tab-status" type="hidden" value="0" />
                 </div>{/* Pool tab */}
