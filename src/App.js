@@ -30,7 +30,6 @@ class App extends React.Component {
   }
 
   initTabs() {
-    
     var tabElList = document.querySelectorAll('button[data-bs-toggle="tab"]')
     tabElList.forEach(function(tabEl) {
       new Bootstrap.Tab(tabEl)
@@ -90,7 +89,6 @@ class App extends React.Component {
 
   async componentDidMount() {
     this.showLoadModal(true);
-    this.showSpin(true);
     this.blurTags(true);
     this.initTabs();
     this.initCharts();
@@ -103,7 +101,6 @@ class App extends React.Component {
     initState.currentPoolPage = 0;
     this.setState(initState);
     this.updateCharts(initState.currentDex);
-    this.showSpin(false);
     this.blurTags(false);
     this.showLoadModal(false);
   }
