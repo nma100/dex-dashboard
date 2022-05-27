@@ -151,7 +151,7 @@ class App extends React.Component {
     const data0 = {
       labels: [],
       datasets: [{
-        label: 'Volume 30 days',
+        label: 'Volume 30 days (usd)',
         backgroundColor: 'rgb(255, 99, 132)',
         borderColor: 'rgb(255, 99, 132)',
         data: [],
@@ -174,7 +174,7 @@ class App extends React.Component {
     const data1 = {
       labels: [],
       datasets: [{
-        label: 'Liquidity 30 days',
+        label: 'Liquidity 30 days (usd)',
         backgroundColor: 'rgb(255, 99, 132)',
         borderColor: 'rgb(255, 99, 132)',
         data: [],
